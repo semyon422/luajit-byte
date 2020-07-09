@@ -6,7 +6,7 @@ local byte = require("byte")
 
 local size = 4e9 -- you can allocate more than 2GB without crash!
 local b = byte.buffer(size)
-ffi.fill(b.pointer, b.size, 0)
+ffi.fill(b.pointer, b.size, 0) -- optional, filled with zeros by default
 
 b:fill("Hello, ", 0)
 b:fill("World!", b.size - 6)
