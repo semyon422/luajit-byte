@@ -46,6 +46,7 @@ local string_to_int32_le = function(s)
 end
 
 local string_to_int32_be = function(s)
+	assert(#s == 4)
 	local a, b, c, d = s:byte(1, -1)
 	return
 		  bit.lshift(a, 24)
