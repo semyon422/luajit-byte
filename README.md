@@ -5,7 +5,7 @@ Binary data module
 local byte = require("byte")
 
 local b = byte.buffer(4e9) -- allocate 4GB
-ffi.fill(b.pointer, b.size, 0) -- optional, filled with zeros by default
+ffi.fill(b.pointer, b.size, 0) -- fill with zeros
 
 b:fill("Hello, ") -- the initial position is 0
 b:fill("World!")
