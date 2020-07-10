@@ -147,74 +147,82 @@ byte.int32_to_string_be = int32_to_string_be
 --------------------------------------------------------------------------------
 
 local free = function(self)
-	if self.size ~= 0 then
-		ffi.C.free(self.pointer)
-		self.size = 0
-		return true
-	end
-	return false
-end
-
-local fill = function(self, s, offset)
-	ffi.copy(self.pointer + (offset or 0), s)
+	assert(self.size ~= 0, "buffer was already freed")
+	ffi.C.free(self.pointer)
+	self.size = 0
+	ffi.gc(self, nil)
 end
 
 local seek = function(self, offset)
+	offset = ffi.cast("uint64_t", offset)
+	assert(offset <= self.size, "attempt to perform seek outside buffer bounds")
 	self.offset = offset
 end
 
-local read_string = function(self, length)
-	local s = ffi.string(self.pointer + self.offset, length)
-	seek(self, self.offset + length)
-	return s
+local fill = function(self, s)
+	local length = #s
+	local offset = self.offset
+	assert(offset + length <= self.size, "attempt to write outside buffer bounds")
+	seek(self, offset + length)
+	ffi.copy(self.pointer + offset, s)
 end
 
-local read_uint8 = function(self)
-	return string_to_uint8(read_string(self, 1))
+local _string = function(self, length)
+	local size = self.size
+	local offset = self.offset
+	assert(size ~= 0, "buffer was already freed")
+	assert(length >= 0, "length cannot be less than zero")
+	assert(offset + length <= size, "attempt to read after end of buffer")
+	seek(self, offset + length)
+	return ffi.string(self.pointer + offset, length)
 end
 
-local read_int8 = function(self)
-	return string_to_int8(read_string(self, 1))
+local uint8 = function(self)
+	return string_to_uint8(_string(self, 1))
 end
 
-local read_uint16_le = function(self)
-	return string_to_uint16_le(read_string(self, 2))
+local int8 = function(self)
+	return string_to_int8(_string(self, 1))
 end
 
-local read_uint16_be = function(self)
-	return string_to_uint16_be(read_string(self, 2))
+local uint16_le = function(self)
+	return string_to_uint16_le(_string(self, 2))
 end
 
-local read_int16_le = function(self)
-	return string_to_int16_le(read_string(self, 2))
+local uint16_be = function(self)
+	return string_to_uint16_be(_string(self, 2))
 end
 
-local read_int16_be = function(self)
-	return string_to_int16_be(read_string(self, 2))
+local int16_le = function(self)
+	return string_to_int16_le(_string(self, 2))
 end
 
-local read_uint32_le = function(self)
-	return string_to_uint32_le(read_string(self, 4))
+local int16_be = function(self)
+	return string_to_int16_be(_string(self, 2))
 end
 
-local read_uint32_be = function(self)
-	return string_to_uint32_be(read_string(self, 4))
+local uint32_le = function(self)
+	return string_to_uint32_le(_string(self, 4))
 end
 
-local read_int32_le = function(self)
-	return string_to_int32_le(read_string(self, 4))
+local uint32_be = function(self)
+	return string_to_uint32_be(_string(self, 4))
 end
 
-local read_int32_be = function(self)
-	return string_to_int32_be(read_string(self, 4))
+local int32_le = function(self)
+	return string_to_int32_le(_string(self, 4))
 end
 
-local read_float_le = function(self)
-	return int32_to_float(string_to_uint32_le(read_string(self, 4)))
+local int32_be = function(self)
+	return string_to_int32_be(_string(self, 4))
 end
 
-local read_float_be = function(self)
-	return int32_to_float(string_to_uint32_be(read_string(self, 4)))
+local float_le = function(self)
+	return int32_to_float(string_to_uint32_le(_string(self, 4)))
+end
+
+local float_be = function(self)
+	return int32_to_float(string_to_uint32_be(_string(self, 4)))
 end
 
 local buffer = {}
@@ -222,19 +230,19 @@ local buffer = {}
 buffer.free = free
 buffer.fill = fill
 buffer.seek = seek
-buffer.read_string = read_string
-buffer.read_uint8 = read_uint8
-buffer.read_int8 = read_int8
-buffer.read_uint16_le = read_uint16_le
-buffer.read_uint16_be = read_uint16_be
-buffer.read_int16_le = read_int16_le
-buffer.read_int16_be = read_int16_be
-buffer.read_uint32_le = read_uint32_le
-buffer.read_uint32_be = read_uint32_be
-buffer.read_int32_le = read_int32_le
-buffer.read_int32_be = read_int32_be
-buffer.read_float_le = read_float_le
-buffer.read_float_be = read_float_be
+buffer.string = _string
+buffer.uint8 = uint8
+buffer.int8 = int8
+buffer.uint16_le = uint16_le
+buffer.uint16_be = uint16_be
+buffer.int16_le = int16_le
+buffer.int16_be = int16_be
+buffer.uint32_le = uint32_le
+buffer.uint32_be = uint32_be
+buffer.int32_le = int32_le
+buffer.int32_be = int32_be
+buffer.float_le = float_le
+buffer.float_be = float_be
 
 --------------------------------------------------------------------------------
 
@@ -252,6 +260,7 @@ end
 local buffer_t = ffi.metatype(ffi.typeof("buffer_t"), mt)
 
 local newbuffer = function(size)
+	assert(size > 0, "buffer size must be greater than zero")
 	local pointer = ffi.C.malloc(size)
 	assert(pointer ~= nil, "allocation error")
 	local buffer = buffer_t(size, 0, pointer)
