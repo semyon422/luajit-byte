@@ -57,18 +57,24 @@ do
 	local size = 64e6
 	local b = byte.buffer(size)
 	assert(b.size == size)
-	ffi.fill(b.pointer, b.size, 0)
 
-	b:fill("hello", 0)
-	b:fill("world", b.size - 10)
+	assert(b.offset == 0)
+	b:fill("hello")
+	assert(b.offset == 5)
+
+	b:seek(b.size - 5)
+	b:fill("world")
+	assert(b.offset == b.size)
 
 	b:seek(0)
-	assert(b:read_string(5) == "hello")
-	b:seek(b.size - 10)
-	assert(b:read_string(5) == "world")
+	assert(b:string(5) == "hello")
+	assert(b.offset == 5)
 
-	assert(b:free())
-	assert(b:free() == false)
+	b:seek(b.size - 5)
+	assert(b:string(5) == "world")
+	assert(b.offset == b.size)
+
+	b:free()
 end
 
 print("OK!")
