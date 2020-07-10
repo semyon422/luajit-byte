@@ -7,11 +7,13 @@ local byte = require("byte")
 local b = byte.buffer(4e9) -- allocate 4GB
 ffi.fill(b.pointer, b.size, 0) -- fill with zeros
 
-b:fill("Hello, ") -- the initial position is 0
+b:fill("Hello, ") -- the initial offset is 0
 b:fill("World!")
 
 b:seek(0)
 print(b:string(13)) -- Hello, World!
+
+print(b:fill("Hello, "):fill("World!"):seek(0):string(13)) -- Hello, World!
 
 b:seek(b.size - 7)
 b:fill("LuaJIT!") -- write at the end of buffer
