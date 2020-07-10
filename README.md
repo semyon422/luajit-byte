@@ -4,17 +4,22 @@ Binary data module
 -- Byte buffer example
 local byte = require("byte")
 
-local size = 4e9 -- you can allocate more than 2GB without crash!
-local b = byte.buffer(size)
+local b = byte.buffer(4e9) -- allocate 4GB
 ffi.fill(b.pointer, b.size, 0) -- optional, filled with zeros by default
 
-b:fill("Hello, ", 0)
-b:fill("World!", b.size - 6)
+b:fill("Hello, ") -- the initial position is 0
+b:fill("World!")
 
 b:seek(0)
-local temp = b:read_string(7)
-b:seek(b.size - 6)
-print(temp .. b:read_string(6)) -- Hello, World!
+print(b:string(13)) -- Hello, World!
+
+b:seek(b.size - 7)
+b:fill("LuaJIT!") -- write at the end of buffer
+
+b:seek(0)
+local temp = b:string(7)
+b:seek(b.size - 7)
+print(temp .. b:string(7)) -- Hello, LuaJIT!
 
 b:free() -- optional, the garbage collector can handle this correctly
 
