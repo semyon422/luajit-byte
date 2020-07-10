@@ -157,6 +157,7 @@ local seek = function(self, offset)
 	offset = ffi.cast("uint64_t", offset)
 	assert(offset <= self.size, "attempt to perform seek outside buffer bounds")
 	self.offset = offset
+	return self
 end
 
 local fill = function(self, s)
@@ -165,6 +166,7 @@ local fill = function(self, s)
 	assert(offset + length <= self.size, "attempt to write outside buffer bounds")
 	seek(self, offset + length)
 	ffi.copy(self.pointer + offset, s)
+	return self
 end
 
 local read = function(self, length)
