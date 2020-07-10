@@ -167,14 +167,22 @@ local fill = function(self, s)
 	ffi.copy(self.pointer + offset, s)
 end
 
-local _string = function(self, length)
+local read = function(self, length)
 	local size = self.size
 	local offset = self.offset
 	assert(size ~= 0, "buffer was already freed")
 	assert(length >= 0, "length cannot be less than zero")
 	assert(offset + length <= size, "attempt to read after end of buffer")
 	seek(self, offset + length)
-	return ffi.string(self.pointer + offset, length)
+	return self.pointer + offset
+end
+
+local _string = function(self, length)
+	return ffi.string(read(self, length), length)
+end
+
+local _cstring = function(self, length)
+	return ffi.string(read(self, length))
 end
 
 local uint8 = function(self)
@@ -231,6 +239,7 @@ buffer.free = free
 buffer.fill = fill
 buffer.seek = seek
 buffer.string = _string
+buffer.cstring = _cstring
 buffer.uint8 = uint8
 buffer.int8 = int8
 buffer.uint16_le = uint16_le

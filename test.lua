@@ -54,6 +54,23 @@ do
 end
 
 do
+	local b = byte.buffer(4)
+	ffi.fill(b.pointer, b.size, 0)
+
+	local s1 = b:string(4)
+	assert(#s1 == 4)
+	assert(s1 == string.char(0x00, 0x00, 0x00, 0x00))
+
+	b:seek(0)
+
+	local s2 = b:cstring(4)
+	assert(#s2 == 0)
+	assert(s2 == "")
+
+	b:free()
+end
+
+do
 	local size = 64e6
 	local b = byte.buffer(size)
 	assert(b.size == size)
