@@ -242,51 +242,63 @@ local _cstring = function(self, length)
 	return s
 end
 
-local uint8 = function(self)
+local uint8 = function(self, n)
+	if n then return fill(self, int8_to_string(n)) end
 	return string_to_uint8(_string(self, 1))
 end
 
-local int8 = function(self)
+local int8 = function(self, n)
+	if n then return fill(self, int8_to_string(n)) end
 	return string_to_int8(_string(self, 1))
 end
 
-local uint16_le = function(self)
+local uint16_le = function(self, n)
+	if n then return fill(self, int16_to_string_le(n)) end
 	return string_to_uint16_le(_string(self, 2))
 end
 
-local uint16_be = function(self)
+local uint16_be = function(self, n)
+	if n then return fill(self, int16_to_string_be(n)) end
 	return string_to_uint16_be(_string(self, 2))
 end
 
-local int16_le = function(self)
+local int16_le = function(self, n)
+	if n then return fill(self, int16_to_string_le(n)) end
 	return string_to_int16_le(_string(self, 2))
 end
 
-local int16_be = function(self)
+local int16_be = function(self, n)
+	if n then return fill(self, int16_to_string_be(n)) end
 	return string_to_int16_be(_string(self, 2))
 end
 
-local uint32_le = function(self)
+local uint32_le = function(self, n)
+	if n then return fill(self, int32_to_string_le(n)) end
 	return string_to_uint32_le(_string(self, 4))
 end
 
-local uint32_be = function(self)
+local uint32_be = function(self, n)
+	if n then return fill(self, int32_to_string_be(n)) end
 	return string_to_uint32_be(_string(self, 4))
 end
 
-local int32_le = function(self)
+local int32_le = function(self, n)
+	if n then return fill(self, int32_to_string_le(n)) end
 	return string_to_int32_le(_string(self, 4))
 end
 
-local int32_be = function(self)
+local int32_be = function(self, n)
+	if n then return fill(self, int32_to_string_be(n)) end
 	return string_to_int32_be(_string(self, 4))
 end
 
-local float_le = function(self)
+local float_le = function(self, n)
+	if n then return fill(self, float_to_string_le(n)) end
 	return int32_to_float(string_to_uint32_le(_string(self, 4)))
 end
 
-local float_be = function(self)
+local float_be = function(self, n)
+	if n then return fill(self, float_to_string_be(n)) end
 	return int32_to_float(string_to_uint32_be(_string(self, 4)))
 end
 
