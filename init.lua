@@ -272,7 +272,7 @@ buffer.float_be = float_be
 ffi.cdef("void* malloc(size_t size);")
 ffi.cdef("void free(void* ptr);")
 
-ffi.cdef("typedef struct {uint64_t size; uint64_t offset; unsigned char* pointer;} buffer_t;")
+ffi.cdef("typedef struct {size_t size; size_t offset; unsigned char* pointer;} buffer_t;")
 
 local mt = {}
 
