@@ -55,22 +55,35 @@ local string_to_int32_be = function(s)
 		+            d
 end
 
+local int32_pointer = ffi.new("int32_t[0]")
+local uint32_pointer = ffi.cast("uint32_t*", int32_pointer)
+
 local string_to_uint32_le = function(s)
-	return ffi.cast("uint32_t", string_to_int32_le(s))
+	int32_pointer[0] = string_to_int32_le(s)
+	return uint32_pointer[0]
 end
 
 local string_to_uint32_be = function(s)
-	return ffi.cast("uint32_t", string_to_int32_be(s))
+	int32_pointer[0] = string_to_int32_be(s)
+	return uint32_pointer[0]
 end
 
 --------------------------------------------------------------------------------
 
-local int32_to_float = function(n)
-	local sign = bit.rshift(n, 31) == 1 and -1 or 1
-	local exponent = bit.band(bit.rshift(n, 23), 0xFF)
-	local mantissa = exponent ~= 0 and bit.bor(bit.band(n, 0x7FFFFF), 0x800000) or bit.lshift(bit.band(n, 0x7FFFFF), 1)
+local i2f_int_pointer = ffi.new("int32_t[1]", 0)
+local i2f_float_pointer = ffi.cast("float*", i2f_int_pointer)
 
-	return sign * (mantissa * 2 ^ -23) * (2 ^ (exponent - 127))
+local int32_to_float = function(n)
+	i2f_int_pointer[0] = n
+	return tonumber(i2f_float_pointer[0])
+end
+
+local f2i_float_pointer = ffi.new("float[1]", 0)
+local f2i_int_pointer = ffi.cast("int32_t*", f2i_float_pointer)
+
+local float_to_int32 = function(n)
+	f2i_float_pointer[0] = n
+	return tonumber(f2i_int_pointer[0])
 end
 
 local string_to_float_le = function(s)
@@ -119,6 +132,14 @@ local int32_to_string_be = function(n)
 	)
 end
 
+local float_to_string_le = function(n)
+	return int32_to_string_le(float_to_int32(n))
+end
+
+local float_to_string_be = function(n)
+	return int32_to_string_be(float_to_int32(n))
+end
+
 --------------------------------------------------------------------------------
 
 local byte = {}
@@ -135,6 +156,7 @@ byte.string_to_int32_le = string_to_int32_le
 byte.string_to_int32_be = string_to_int32_be
 
 byte.int32_to_float = int32_to_float
+byte.float_to_int32 = float_to_int32
 byte.string_to_float_le = string_to_float_le
 byte.string_to_float_be = string_to_float_be
 
@@ -143,6 +165,9 @@ byte.int16_to_string_le = int16_to_string_le
 byte.int16_to_string_be = int16_to_string_be
 byte.int32_to_string_le = int32_to_string_le
 byte.int32_to_string_be = int32_to_string_be
+
+byte.float_to_string_le = float_to_string_le
+byte.float_to_string_be = float_to_string_be
 
 --------------------------------------------------------------------------------
 
