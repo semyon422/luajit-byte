@@ -1,5 +1,6 @@
 local ffi = require("ffi")
 local bit = require("bit")
+
 local byte = require("init")
 
 do
@@ -51,6 +52,19 @@ do
 	assert(byte.int16_to_string_be(0x5249) == "RI")
 	assert(byte.int32_to_string_le(0x46464952) == "RIFF")
 	assert(byte.int32_to_string_be(0x52494646) == "RIFF")
+end
+
+do
+	local b1 = byte.buffer(4)
+	assert(b1:total() == 4)
+
+	local b2 = byte.buffer(4)
+	assert(b2:total() == 8)
+
+	b1:free()
+	b2:free()
+
+	assert(b2:total() == 0)
 end
 
 do

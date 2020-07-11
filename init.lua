@@ -146,11 +146,18 @@ byte.int32_to_string_be = int32_to_string_be
 
 --------------------------------------------------------------------------------
 
+local _total = ffi.cast("size_t", 0)
+
+local total = function(self)
+	return _total
+end
+
 local free = function(self)
 	assert(self.size ~= 0, "buffer was already freed")
 	ffi.C.free(self.pointer)
-	self.size = 0
 	ffi.gc(self, nil)
+	_total = _total - self.size
+	self.size = 0
 end
 
 local seek = function(self, offset)
@@ -249,6 +256,7 @@ end
 
 local buffer = {}
 
+buffer.total = total
 buffer.free = free
 buffer.fill = fill
 buffer.seek = seek
@@ -288,6 +296,7 @@ local newbuffer = function(size)
 	assert(pointer ~= nil, "allocation error")
 	local buffer = buffer_t(size, 0, pointer)
 	ffi.gc(buffer, free)
+	_total = _total + size
 	return buffer
 end
 
