@@ -105,6 +105,41 @@ do
 end
 
 do
+	local size = 4
+	local pointer
+	do
+		local b = byte.buffer(size)
+		b:gc(false)
+		b:fill("aaaa")
+		pointer = b.pointer
+	end
+	collectgarbage("collect")
+	do
+		local b = byte.buffer_t(size, 0, pointer)
+		b:gc(true)
+		assert(b:string(size) == "aaaa")
+		b:free()
+	end
+end
+
+do
+	local size = 4
+	local address
+	do
+		local b = byte.buffer(size)
+		b:gc(false)
+		b:fill("aaaa")
+		address = ffi.cast("size_t", b.pointer)
+	end
+	collectgarbage("collect")
+	do
+		local b = byte.buffer_t(size, 0, ffi.cast("void*", address))
+		assert(b:string(size) == "aaaa")
+		b:free()
+	end
+end
+
+do
 	local size = 64e6
 	local b = byte.buffer(size)
 	assert(b.size == size)

@@ -160,6 +160,17 @@ local free = function(self)
 	self.size = 0
 end
 
+local gc = function(self, state)
+	assert(self.size ~= 0, "buffer was already freed")
+	assert(type(state) == "boolean", ("bad argument #2 to 'gc' (boolean expected, got %s)"):format(type(state)))
+	if state then
+		ffi.gc(self, free)
+	else
+		ffi.gc(self, nil)
+	end
+	return self
+end
+
 local seek = function(self, offset)
 	offset = ffi.cast("size_t", offset)
 	assert(offset <= self.size, "attempt to perform seek outside buffer bounds")
@@ -258,6 +269,7 @@ local buffer = {}
 
 buffer.total = total
 buffer.free = free
+buffer.gc = gc
 buffer.fill = fill
 buffer.seek = seek
 buffer.string = _string
@@ -300,6 +312,7 @@ local newbuffer = function(size)
 	return buffer
 end
 
+byte.buffer_t = buffer_t
 byte.buffer = newbuffer
 
 return byte
