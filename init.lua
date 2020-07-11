@@ -169,22 +169,34 @@ local fill = function(self, s)
 	return self
 end
 
-local read = function(self, length)
+local _string = function(self, length)
 	local size = self.size
 	local offset = self.offset
+
 	assert(size ~= 0, "buffer was already freed")
+	assert(type(length) == "number", ("bad argument #2 to 'string' (number expected, got %s)"):format(type(length)))
 	assert(length >= 0, "length cannot be less than zero")
 	assert(offset + length <= size, "attempt to read after end of buffer")
 	seek(self, offset + length)
-	return self.pointer + offset
-end
 
-local _string = function(self, length)
-	return ffi.string(read(self, length), length)
+	return ffi.string(self.pointer + offset, length)
 end
 
 local _cstring = function(self, length)
-	return ffi.string(read(self, length))
+	local size = self.size
+	local offset = self.offset
+
+	assert(size ~= 0, "buffer was already freed")
+	assert(type(length) == "number", ("bad argument #2 to 'cstring' (number expected, got %s)"):format(type(length)))
+	assert(length >= 0, "length cannot be less than zero")
+	assert(offset + length <= size, "attempt to read after end of buffer")
+	seek(self, offset + length)
+
+	local s = ffi.string(self.pointer + offset)
+	if #s > length then
+		return ffi.string(self.pointer + offset, length)
+	end
+	return s
 end
 
 local uint8 = function(self)

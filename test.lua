@@ -71,6 +71,26 @@ do
 end
 
 do
+	local b = byte.buffer(4)
+	b:fill("a\0a\0")
+
+	b:seek(0)
+	local s1 = b:string(4)
+	assert(#s1 == 4)
+	assert(s1 == "a\0a\0")
+
+	for i = 1, 4 do
+		b:seek(0)
+		local s2 = b:cstring(i)
+		assert(#s2 == 1)
+		assert(s2 == "a")
+		assert(b.offset == i)
+	end
+
+	b:free()
+end
+
+do
 	local size = 64e6
 	local b = byte.buffer(size)
 	assert(b.size == size)
