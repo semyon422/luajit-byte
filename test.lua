@@ -10,6 +10,9 @@ do
 	local un1 = ffi.cast("uint8_t", 0xf1)
 	local un2 = ffi.cast("uint16_t", 0xf1f2)
 	local un3 = ffi.cast("uint32_t", 0xf1f2f3f4)
+	assert(sn1 == -0x100 + 0xf1)
+	assert(sn2 == -0x10000 + 0xf1f2)
+	assert(sn3 == -0x100000000 + 0xf1f2f3f4)
 
 	local s1 = string.char(0xf1)
 	local s2_be = string.char(0xf1, 0xf2)
@@ -52,6 +55,17 @@ do
 	assert(byte.int16_to_string_be(0x5249) == "RI")
 	assert(byte.int32_to_string_le(0x46464952) == "RIFF")
 	assert(byte.int32_to_string_be(0x52494646) == "RIFF")
+
+	assert(byte.string_to_uint8(byte.int8_to_string(-1)) == 255)
+	assert(byte.string_to_int8(byte.int8_to_string(-1)) == -1)
+	assert(byte.string_to_uint16_le(byte.int16_to_string_le(-1)) == 65535)
+	assert(byte.string_to_uint16_be(byte.int16_to_string_be(-1)) == 65535)
+	assert(byte.string_to_int16_le(byte.int16_to_string_le(-1)) == -1)
+	assert(byte.string_to_int16_be(byte.int16_to_string_be(-1)) == -1)
+	assert(byte.string_to_uint32_le(byte.int32_to_string_le(-1)) == 4294967295)
+	assert(byte.string_to_uint32_be(byte.int32_to_string_be(-1)) == 4294967295)
+	assert(byte.string_to_int32_le(byte.int32_to_string_le(-1)) == -1)
+	assert(byte.string_to_int32_be(byte.int32_to_string_be(-1)) == -1)
 end
 
 do
@@ -80,6 +94,18 @@ do
 	local s2 = b:cstring(4)
 	assert(#s2 == 0)
 	assert(s2 == "")
+
+	b:free()
+end
+
+do
+	local b = byte.buffer(4)
+	b:fill("aaaa")
+	b:seek(0)
+	b:fill("bb")
+	b:seek(0)
+
+	assert(b:string(4) == "bbaa")
 
 	b:free()
 end
