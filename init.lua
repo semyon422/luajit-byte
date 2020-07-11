@@ -161,7 +161,7 @@ local free = function(self)
 end
 
 local seek = function(self, offset)
-	offset = ffi.cast("uint64_t", offset)
+	offset = ffi.cast("size_t", offset)
 	assert(offset <= self.size, "attempt to perform seek outside buffer bounds")
 	self.offset = offset
 	return self
