@@ -55,7 +55,7 @@ local string_to_int32_be = function(s)
 		+            d
 end
 
-local int32_pointer = ffi.new("int32_t[0]")
+local int32_pointer = ffi.new("int32_t[1]")
 local uint32_pointer = ffi.cast("uint32_t*", int32_pointer)
 
 local string_to_uint32_le = function(s)
