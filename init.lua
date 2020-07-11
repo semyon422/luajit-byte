@@ -183,7 +183,7 @@ local fill = function(self, s)
 	local offset = self.offset
 	assert(offset + length <= self.size, "attempt to write outside buffer bounds")
 	seek(self, offset + length)
-	ffi.copy(self.pointer + offset, s)
+	ffi.copy(self.pointer + offset, s, length)
 	return self
 end
 
