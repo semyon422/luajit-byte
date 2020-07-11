@@ -50,6 +50,15 @@ do
 	assert(byte.string_to_float_be(s1_be) == 0.15625)
 	assert(byte.string_to_float_be(s2_be) == 1)
 
+	assert(byte.float_to_int32(0.15625) == n1)
+	assert(byte.float_to_int32(1) == n2)
+
+	assert(byte.float_to_string_le(0.15625) == s1_le)
+	assert(byte.float_to_string_le(1) == s2_le)
+
+	assert(byte.float_to_string_be(0.15625) == s1_be)
+	assert(byte.float_to_string_be(1) == s2_be)
+
 	assert(byte.int8_to_string(113) == "q")
 	assert(byte.int16_to_string_le(0x4952) == "RI")
 	assert(byte.int16_to_string_be(0x5249) == "RI")
@@ -79,6 +88,28 @@ do
 	b2:free()
 
 	assert(b2:total() == 0)
+end
+
+do
+	local b = byte.buffer(4)
+
+	local n = 0.123
+	b:float_le(n)
+	b:seek(0)
+	assert(math.abs(b:float_le() - n) < 1e-6)
+
+	b:free()
+end
+
+do
+	local b = byte.buffer(4)
+
+	local n = 777
+	b:int16_be(n)
+	b:seek(0)
+	assert(b:int16_be() == n)
+
+	b:free()
 end
 
 do
