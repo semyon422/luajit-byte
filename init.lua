@@ -1,30 +1,51 @@
 local bit = require('bit')
 local ffi = require('ffi')
 
-local bad_argument_pattern = "bad argument #%d to '%s' (%s expected, got %s)"
+local bad_argument_pattern = "bad argument (%s expected, got %s)"
 
-local assert_type = function(value, _type, n, name)
+local assert_type = function(value, _type)
 	return assert(
 		type(value) == _type,
-		bad_argument_pattern:format(n, name, _type, type(value))
+		bad_argument_pattern:format(_type, type(value))
 	)
 end
 
-local assert_ctype = function(object, ctype, n, name)
+local assert_ctype = function(object, ctype)
 	assert(
 		type(object) == "cdata",
-		bad_argument_pattern:format(n, name, ffi.typeof(ctype), type(object))
+		bad_argument_pattern:format(ffi.typeof(ctype), type(object))
 	)
 	assert(
 		ffi.istype(ctype, object),
-		bad_argument_pattern:format(n, name, ffi.typeof(ctype), ffi.typeof(object))
+		bad_argument_pattern:format(ffi.typeof(ctype), ffi.typeof(object))
 	)
+end
+
+local bad_numeric_pattern = "bad argument (number or ctype<uint64_t> expected, got %s)"
+
+local assert_numeric
+do
+	local uint64_t = ffi.typeof("uint64_t")
+
+	assert_numeric = function(value)
+		if type(value) == "cdata" then
+			return assert(
+				ffi.istype(uint64_t, value),
+				bad_numeric_pattern:format(ffi.typeof(value))
+			)
+		else
+			return assert(
+				tonumber(value),
+				bad_numeric_pattern:format(type(value))
+			)
+		end
+	end
 end
 
 --------------------------------------------------------------------------------
 
 local string_to_uint8 = function(s)
-	assert_type(s, "string", 1, "string_to_uint8")
+	assert_type(s, "string")
 	assert(#s == 1)
 	return s:byte()
 end
@@ -35,14 +56,14 @@ local string_to_int8 = function(s)
 end
 
 local string_to_uint16_le = function(s)
-	assert_type(s, "string", 1, "string_to_uint16_le")
+	assert_type(s, "string")
 	assert(#s == 2)
 	local a, b = s:byte(1, -1)
 	return bit.lshift(b, 8) + a
 end
 
 local string_to_uint16_be = function(s)
-	assert_type(s, "string", 1, "string_to_uint16_be")
+	assert_type(s, "string")
 	assert(#s == 2)
 	local a, b = s:byte(1, -1)
 	return bit.lshift(a, 8) + b
@@ -59,7 +80,7 @@ local string_to_int16_be = function(s)
 end
 
 local string_to_int32_le = function(s)
-	assert_type(s, "string", 1, "string_to_int32_le")
+	assert_type(s, "string")
 	assert(#s == 4)
 	local a, b, c, d = s:byte(1, -1)
 	return
@@ -70,7 +91,7 @@ local string_to_int32_le = function(s)
 end
 
 local string_to_int32_be = function(s)
-	assert_type(s, "string", 1, "string_to_int32_be")
+	assert_type(s, "string")
 	assert(#s == 4)
 	local a, b, c, d = s:byte(1, -1)
 	return
@@ -107,28 +128,28 @@ do
 	local uint64_pointer = ffi.cast("uint64_t*", char_pointer)
 
 	string_to_int64_le = function(s)
-		assert_type(s, "string", 1, "string_to_int64_le")
+		assert_type(s, "string")
 		assert(#s == 8)
 		ffi.copy(char_pointer, s, 8)
 		return int64_pointer[0]
 	end
 
 	string_to_int64_be = function(s)
-		assert_type(s, "string", 1, "string_to_int64_be")
+		assert_type(s, "string")
 		assert(#s == 8)
 		ffi.copy(char_pointer, s:reverse(), 8)
 		return int64_pointer[0]
 	end
 
 	string_to_uint64_le = function(s)
-		assert_type(s, "string", 1, "string_to_uint64_le")
+		assert_type(s, "string")
 		assert(#s == 8)
 		ffi.copy(char_pointer, s, 8)
 		return uint64_pointer[0]
 	end
 
 	string_to_uint64_be = function(s)
-		assert_type(s, "string", 1, "string_to_uint64_be")
+		assert_type(s, "string")
 		assert(#s == 8)
 		ffi.copy(char_pointer, s:reverse(), 8)
 		return uint64_pointer[0]
@@ -143,7 +164,7 @@ do
 	local float_pointer = ffi.cast("float*", int32_pointer)
 
 	int32_to_float = function(n)
-		assert_type(n, "number", 1, "int32_to_float")
+		assert_type(n, "number")
 		int32_pointer[0] = n
 		return tonumber(float_pointer[0])
 	end
@@ -155,7 +176,7 @@ do
 	local int32_pointer = ffi.cast("int32_t*", float_pointer)
 
 	float_to_int32 = function(n)
-		assert_type(n, "number", 1, "float_to_int32")
+		assert_type(n, "number")
 		float_pointer[0] = n
 		return tonumber(int32_pointer[0])
 	end
@@ -178,7 +199,7 @@ do
 	local int64_t = ffi.typeof("int64_t")
 
 	int64_to_double = function(n)
-		assert_ctype(n, int64_t, 1, "int64_to_double")
+		assert_ctype(n, int64_t)
 		int64_pointer[0] = n
 		return tonumber(double_pointer[0])
 	end
@@ -190,7 +211,7 @@ do
 	local int64_pointer = ffi.cast("int64_t*", double_pointer)
 
 	double_to_int64 = function(n)
-		assert_type(n, "number", 1, "int64_to_double")
+		assert_type(n, "number")
 		double_pointer[0] = n
 		return int64_pointer[0]
 	end
@@ -207,12 +228,12 @@ end
 --------------------------------------------------------------------------------
 
 local int8_to_string = function(n)
-	assert_type(n, "number", 1, "int8_to_string")
+	assert_type(n, "number")
 	return string.char(bit.band(n, 0x000000ff))
 end
 
 local int16_to_string_le = function(n)
-	assert_type(n, "number", 1, "int16_to_string_le")
+	assert_type(n, "number")
 	return string.char(
 		           bit.band(n, 0x000000ff),
 		bit.rshift(bit.band(n, 0x0000ff00), 8)
@@ -220,7 +241,7 @@ local int16_to_string_le = function(n)
 end
 
 local int16_to_string_be = function(n)
-	assert_type(n, "number", 1, "int16_to_string_be")
+	assert_type(n, "number")
 	return string.char(
 		bit.rshift(bit.band(n, 0x0000ff00), 8),
 		           bit.band(n, 0x000000ff)
@@ -228,7 +249,7 @@ local int16_to_string_be = function(n)
 end
 
 local int32_to_string_le = function(n)
-	assert_type(n, "number", 1, "int32_to_string_le")
+	assert_type(n, "number")
 	return string.char(
 		           bit.band(n, 0x000000ff),
 		bit.rshift(bit.band(n, 0x0000ff00), 8),
@@ -238,7 +259,7 @@ local int32_to_string_le = function(n)
 end
 
 local int32_to_string_be = function(n)
-	assert_type(n, "number", 1, "int32_to_string_be")
+	assert_type(n, "number")
 	return string.char(
 		bit.rshift(bit.band(n, 0xff000000), 24),
 		bit.rshift(bit.band(n, 0x00ff0000), 16),
@@ -255,13 +276,13 @@ do
 	local int64_t = ffi.typeof("int64_t")
 
 	int64_to_string_le = function(n)
-		assert_ctype(n, int64_t, 1, "int64_to_string_le")
+		assert_ctype(n, int64_t)
 		int64_pointer[0] = n
 		return ffi.string(char_pointer, 8)
 	end
 
 	int64_to_string_be = function(n)
-		assert_ctype(n, int64_t, 1, "int64_to_string_be")
+		assert_ctype(n, int64_t)
 		int64_pointer[0] = n
 		return ffi.string(char_pointer, 8):reverse()
 	end
@@ -275,13 +296,13 @@ do
 	local uint64_t = ffi.typeof("uint64_t")
 
 	uint64_to_string_le = function(n)
-		assert_ctype(n, uint64_t, 1, "uint64_to_string_le")
+		assert_ctype(n, uint64_t)
 		uint64_pointer[0] = n
 		return ffi.string(char_pointer, 8)
 	end
 
 	uint64_to_string_be = function(n)
-		assert_ctype(n, uint64_t, 1, "uint64_to_string_be")
+		assert_ctype(n, uint64_t)
 		uint64_pointer[0] = n
 		return ffi.string(char_pointer, 8):reverse()
 	end
@@ -351,74 +372,112 @@ byte.double_to_string_be = double_to_string_be
 
 --------------------------------------------------------------------------------
 
-local _total = ffi.cast("size_t", 0)
+local assert_freed = function(self)
+	return assert(self.size ~= 0, "buffer was already freed")
+end
 
-local total = function(self)
+local _total = ffi.new("size_t")
+
+local total = function()
 	return _total
 end
 
+local resize = function(self, newsize)
+	assert_freed(self)
+	assert_numeric(newsize)
+	assert(newsize > 0, "buffer size must be greater than zero")
+
+	local pointer = ffi.C.realloc(self.pointer, newsize)
+	assert(pointer ~= nil, "allocation error")
+	self.pointer = pointer
+
+	_total = _total + newsize - self.size
+	self.size = newsize
+
+	self.offset = self.offset < newsize and self.offset or newsize
+
+	return self
+end
+
 local free = function(self)
-	assert(self.size ~= 0, "buffer was already freed")
+	assert_freed(self)
+
 	ffi.C.free(self.pointer)
 	ffi.gc(self, nil)
+
 	_total = _total - self.size
+
 	self.size = 0
 end
 
 local gc = function(self, state)
-	assert(self.size ~= 0, "buffer was already freed")
-	assert_type(state, "boolean", 2, "gc")
+	assert_freed(self)
+	assert_type(state, "boolean")
+
 	if state then
 		ffi.gc(self, free)
 	else
 		ffi.gc(self, nil)
 	end
+
 	return self
 end
 
 local seek = function(self, offset)
-	offset = ffi.cast("size_t", offset)
-	assert(offset <= self.size, "attempt to perform seek outside buffer bounds")
+	assert_freed(self)
+	assert_numeric(offset)
+	assert(offset >= 0 and offset <= self.size, "attempt to perform seek outside buffer bounds")
+
 	self.offset = offset
+
 	return self
 end
 
 local fill = function(self, s)
+	assert_freed(self)
+	assert_type(s, "string")
+
 	local length = #s
 	local offset = self.offset
 	assert(offset + length <= self.size, "attempt to write outside buffer bounds")
-	seek(self, offset + length)
+
+	self.offset = offset + length
+
 	ffi.copy(self.pointer + offset, s, length)
+
 	return self
 end
 
 local _string = function(self, length)
-	local size = self.size
+	assert_freed(self)
+	assert_numeric(length)
+
 	local offset = self.offset
 
-	assert(size ~= 0, "buffer was already freed")
-	assert_type(length, "number", 2, "string")
 	assert(length >= 0, "length cannot be less than zero")
-	assert(offset + length <= size, "attempt to read after end of buffer")
-	seek(self, offset + length)
+	assert(offset + length <= self.size, "attempt to read after end of buffer")
+
+	self.offset = offset + length
 
 	return ffi.string(self.pointer + offset, length)
 end
 
 local _cstring = function(self, length)
-	local size = self.size
+	assert_freed(self)
+	assert_numeric(length)
+
 	local offset = self.offset
 
-	assert(size ~= 0, "buffer was already freed")
-	assert_type(length, "number", 2, "string")
 	assert(length >= 0, "length cannot be less than zero")
-	assert(offset + length <= size, "attempt to read after end of buffer")
-	seek(self, offset + length)
+	assert(offset + length <= self.size, "attempt to read after end of buffer")
+
+	self.offset = offset + length
 
 	local s = ffi.string(self.pointer + offset)
 	if #s > length then
 		return ffi.string(self.pointer + offset, length)
 	end
+
 	return s
 end
 
@@ -515,6 +574,7 @@ end
 local buffer = {}
 
 buffer.total = total
+buffer.resize = resize
 buffer.free = free
 buffer.gc = gc
 buffer.fill = fill
@@ -542,10 +602,11 @@ buffer.double_be = double_be
 
 --------------------------------------------------------------------------------
 
-ffi.cdef("void* malloc(size_t size);")
-ffi.cdef("void free(void* ptr);")
+ffi.cdef("void * malloc(size_t size);")
+ffi.cdef("void * realloc(void * ptr, size_t newsize);")
+ffi.cdef("void free(void * ptr);")
 
-ffi.cdef("typedef struct {size_t size; size_t offset; unsigned char* pointer;} buffer_t;")
+ffi.cdef("typedef struct {size_t size; size_t offset; unsigned char * pointer;} buffer_t;")
 
 local mt = {}
 
@@ -556,12 +617,17 @@ end
 local buffer_t = ffi.metatype(ffi.typeof("buffer_t"), mt)
 
 local newbuffer = function(size)
+	assert_numeric(size)
 	assert(size > 0, "buffer size must be greater than zero")
+
 	local pointer = ffi.C.malloc(size)
 	assert(pointer ~= nil, "allocation error")
+
 	local buffer = buffer_t(size, 0, pointer)
 	ffi.gc(buffer, free)
+
 	_total = _total + size
+
 	return buffer
 end
 

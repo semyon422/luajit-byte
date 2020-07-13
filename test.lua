@@ -243,6 +243,29 @@ do
 end
 
 do
+	local b = byte.buffer(4)
+	assert(b:total() == 4)
+
+	b:fill("aaaa")
+	assert(b.offset == 4)
+	assert(b.size == 4)
+
+	b:resize(8)
+	assert(b:total() == 8)
+	assert(b.offset == 4)
+	assert(b.size == 8)
+
+	b:fill("bb")
+	assert(b.offset == 6)
+	assert(b.size == 8)
+
+	b:resize(4)
+	assert(b:total() == 4)
+	assert(b.offset == 4)
+	assert(b.size == 4)
+end
+
+do
 	local size = 64e6
 	local b = byte.buffer(size)
 	assert(b.size == size)
