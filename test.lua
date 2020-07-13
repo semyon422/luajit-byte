@@ -266,6 +266,31 @@ do
 end
 
 do
+	local nanbox
+	do
+		local b = byte.buffer(8)
+		b:double_be(0 / 0)
+		b:seek(4)
+		b:fill("love")
+		b:seek(0)
+
+		nanbox = b:double_be()
+		assert(nanbox ~= nanbox)
+
+		b:free()
+	end
+	do
+		local b = byte.buffer(8)
+		b:double_be(nanbox)
+		b:seek(4)
+
+		assert(b:string(4) == "love")
+
+		b:free()
+	end
+end
+
+do
 	local size = 64e6
 	local b = byte.buffer(size)
 	assert(b.size == size)

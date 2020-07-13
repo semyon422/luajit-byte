@@ -1,30 +1,24 @@
 # luajit-byte
 Binary data module
 ```lua
--- Byte buffer example
 local byte = require("byte")
 
-local b = byte.buffer(4e9) -- allocate 4GB
+-- Byte buffer example, check source code for more info
+local b = byte.buffer(2e9) -- allocate 2GB
+b:resize(4e9) -- reallocate to 4GB
 ffi.fill(b.pointer, b.size, 0) -- fill with zeros
-
-b:fill("Hello, ") -- the initial offset is 0
-b:fill("World!")
-
-b:seek(0)
-print(b:string(13)) -- Hello, World!
 
 print(b:fill("Hello, "):fill("World!"):seek(0):string(13)) -- Hello, World!
 
-b:seek(b.size - 7)
-b:fill("LuaJIT!") -- write at the end of buffer
-
-b:seek(0)
-local temp = b:string(7)
-b:seek(b.size - 7)
-print(temp .. b:string(7)) -- Hello, LuaJIT!
-
 b:free() -- optional, the garbage collector can handle this correctly
 
--- type casting example
-print(byte.int32_to_string_be(0x52494646)) -- RIFF
+-- nan boxing example
+local b = byte.buffer(8)
+b:double_be(0 / 0):seek(4):fill("love"):seek(0)
+
+local nanbox = b:double_be()
+assert(nanbox ~= nanbox) -- nan
+
+assert(b:seek(4):string(4) == "love")
+
 ```
