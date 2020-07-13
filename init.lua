@@ -124,6 +124,32 @@ end
 
 --------------------------------------------------------------------------------
 
+local i2d_int_pointer = ffi.new("int64_t[1]", 0)
+local i2d_double_pointer = ffi.cast("double*", i2d_int_pointer)
+
+local int64_to_double = function(n)
+	i2d_int_pointer[0] = n
+	return tonumber(i2d_double_pointer[0])
+end
+
+local d2i_double_pointer = ffi.new("double[1]", 0)
+local d2i_int_pointer = ffi.cast("int64_t*", d2i_double_pointer)
+
+local double_to_int64 = function(n)
+	d2i_double_pointer[0] = n
+	return d2i_int_pointer[0]
+end
+
+local string_to_double_le = function(s)
+	return int64_to_double(string_to_int64_le(s))
+end
+
+local string_to_double_be = function(s)
+	return int64_to_double(string_to_int64_be(s))
+end
+
+--------------------------------------------------------------------------------
+
 local int8_to_string = function(n)
 	return string.char(bit.band(n, 0x000000ff))
 end
@@ -194,6 +220,14 @@ local float_to_string_be = function(n)
 	return int32_to_string_be(float_to_int32(n))
 end
 
+local double_to_string_le = function(n)
+	return int64_to_string_le(double_to_int64(n))
+end
+
+local double_to_string_be = function(n)
+	return int64_to_string_be(double_to_int64(n))
+end
+
 --------------------------------------------------------------------------------
 
 local byte = {}
@@ -219,6 +253,11 @@ byte.float_to_int32 = float_to_int32
 byte.string_to_float_le = string_to_float_le
 byte.string_to_float_be = string_to_float_be
 
+byte.int64_to_double = int64_to_double
+byte.double_to_int64 = double_to_int64
+byte.string_to_double_le = string_to_double_le
+byte.string_to_double_be = string_to_double_be
+
 byte.int8_to_string = int8_to_string
 byte.int16_to_string_le = int16_to_string_le
 byte.int16_to_string_be = int16_to_string_be
@@ -232,6 +271,8 @@ byte.uint64_to_string_be = uint64_to_string_be
 
 byte.float_to_string_le = float_to_string_le
 byte.float_to_string_be = float_to_string_be
+byte.double_to_string_le = double_to_string_le
+byte.double_to_string_be = double_to_string_be
 
 --------------------------------------------------------------------------------
 
@@ -386,6 +427,16 @@ local float_be = function(self, n)
 	return int32_to_float(string_to_uint32_be(_string(self, 4)))
 end
 
+local double_le = function(self, n)
+	if n then return fill(self, double_to_string_le(n)) end
+	return int64_to_double(string_to_int64_le(_string(self, 8)))
+end
+
+local double_be = function(self, n)
+	if n then return fill(self, double_to_string_be(n)) end
+	return int64_to_double(string_to_int64_be(_string(self, 8)))
+end
+
 local buffer = {}
 
 buffer.total = total
@@ -411,6 +462,8 @@ buffer.int64_le = int64_le
 buffer.int64_be = int64_be
 buffer.float_le = float_le
 buffer.float_be = float_be
+buffer.double_le = double_le
+buffer.double_be = double_be
 
 --------------------------------------------------------------------------------
 

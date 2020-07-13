@@ -93,6 +93,12 @@ do
 	assert(byte.string_to_uint64_be(byte.uint64_to_string_be(-1)) == -1ull)
 	assert(byte.string_to_int64_le(byte.int64_to_string_le(-1)) == -1ll)
 	assert(byte.string_to_int64_be(byte.int64_to_string_be(-1)) == -1ll)
+
+	assert(byte.string_to_double_le(byte.double_to_string_le(math.pi)) == math.pi)
+	assert(byte.string_to_double_le(byte.double_to_string_le(0.2 + 0.1)) == 0.2 + 0.1)
+
+	assert(byte.string_to_double_be(byte.double_to_string_be(math.pi)) == math.pi)
+	assert(byte.string_to_double_be(byte.double_to_string_be(0.2 + 0.1)) == 0.2 + 0.1)
 end
 
 do
@@ -137,6 +143,17 @@ do
 	b:int64_be(n)
 	b:seek(0)
 	assert(b:int64_be() == n)
+
+	b:free()
+end
+
+do
+	local b = byte.buffer(8)
+
+	local n = math.pi
+	b:double_le(n)
+	b:seek(0)
+	assert(b:double_le() == n)
 
 	b:free()
 end
