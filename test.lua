@@ -7,9 +7,11 @@ do
 	local sn1 = ffi.cast("int8_t", 0xf1)
 	local sn2 = ffi.cast("int16_t", 0xf1f2)
 	local sn3 = ffi.cast("int32_t", bit.tobit(0xf1f2f3f4))
+	local sn4 = ffi.cast("int64_t", 0xf1f2f3f4f5f6f7f8ll)
 	local un1 = ffi.cast("uint8_t", 0xf1)
 	local un2 = ffi.cast("uint16_t", 0xf1f2)
 	local un3 = ffi.cast("uint32_t", 0xf1f2f3f4)
+	local un4 = ffi.cast("uint64_t", 0xf1f2f3f4f5f6f7f8ull)
 	assert(sn1 == -0x100 + 0xf1)
 	assert(sn2 == -0x10000 + 0xf1f2)
 	assert(sn3 == -0x100000000 + 0xf1f2f3f4)
@@ -17,19 +19,28 @@ do
 	local s1 = string.char(0xf1)
 	local s2_be = string.char(0xf1, 0xf2)
 	local s3_be = string.char(0xf1, 0xf2, 0xf3, 0xf4)
+	local s4_be = string.char(0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8)
 	local s2_le = string.char(0xf2, 0xf1)
 	local s3_le = string.char(0xf4, 0xf3, 0xf2, 0xf1)
+	local s4_le = string.char(0xf8, 0xf7, 0xf6, 0xf5, 0xf4, 0xf3, 0xf2, 0xf1)
 
 	assert(byte.string_to_uint8(s1) == un1)
 	assert(byte.string_to_int8(s1) == sn1)
+
 	assert(byte.string_to_uint16_le(s2_le) == un2)
 	assert(byte.string_to_uint16_be(s2_be) == un2)
 	assert(byte.string_to_int16_le(s2_le) == sn2)
 	assert(byte.string_to_int16_be(s2_be) == sn2)
+
 	assert(byte.string_to_uint32_le(s3_le) == un3)
 	assert(byte.string_to_uint32_be(s3_be) == un3)
 	assert(byte.string_to_int32_le(s3_le) == sn3)
 	assert(byte.string_to_int32_be(s3_be) == sn3)
+
+	assert(byte.string_to_uint64_le(s4_le) == un4)
+	assert(byte.string_to_uint64_be(s4_be) == un4)
+	assert(byte.string_to_int64_le(s4_le) == sn4)
+	assert(byte.string_to_int64_be(s4_be) == sn4)
 end
 
 do
@@ -67,14 +78,21 @@ do
 
 	assert(byte.string_to_uint8(byte.int8_to_string(-1)) == 255)
 	assert(byte.string_to_int8(byte.int8_to_string(-1)) == -1)
+
 	assert(byte.string_to_uint16_le(byte.int16_to_string_le(-1)) == 65535)
 	assert(byte.string_to_uint16_be(byte.int16_to_string_be(-1)) == 65535)
 	assert(byte.string_to_int16_le(byte.int16_to_string_le(-1)) == -1)
 	assert(byte.string_to_int16_be(byte.int16_to_string_be(-1)) == -1)
+
 	assert(byte.string_to_uint32_le(byte.int32_to_string_le(-1)) == 4294967295)
 	assert(byte.string_to_uint32_be(byte.int32_to_string_be(-1)) == 4294967295)
 	assert(byte.string_to_int32_le(byte.int32_to_string_le(-1)) == -1)
 	assert(byte.string_to_int32_be(byte.int32_to_string_be(-1)) == -1)
+
+	assert(byte.string_to_uint64_le(byte.uint64_to_string_le(-1)) == -1ull)
+	assert(byte.string_to_uint64_be(byte.uint64_to_string_be(-1)) == -1ull)
+	assert(byte.string_to_int64_le(byte.int64_to_string_le(-1)) == -1ll)
+	assert(byte.string_to_int64_be(byte.int64_to_string_be(-1)) == -1ll)
 end
 
 do
@@ -108,6 +126,17 @@ do
 	b:int16_be(n)
 	b:seek(0)
 	assert(b:int16_be() == n)
+
+	b:free()
+end
+
+do
+	local b = byte.buffer(8)
+
+	local n = 0xfedcba9876543210ll
+	b:int64_be(n)
+	b:seek(0)
+	assert(b:int64_be() == n)
 
 	b:free()
 end

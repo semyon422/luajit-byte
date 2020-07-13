@@ -68,6 +68,34 @@ local string_to_uint32_be = function(s)
 	return uint32_pointer[0]
 end
 
+local s2i_char64_pointer = ffi.new("char[8]")
+local s2i_int64_pointer = ffi.cast("int64_t*", s2i_char64_pointer)
+local s2i_uint64_pointer = ffi.cast("uint64_t*", s2i_char64_pointer)
+
+local string_to_int64_le = function(s)
+	assert(#s == 8)
+	ffi.copy(s2i_char64_pointer, s, 8)
+	return s2i_int64_pointer[0]
+end
+
+local string_to_int64_be = function(s)
+	assert(#s == 8)
+	ffi.copy(s2i_char64_pointer, s:reverse(), 8)
+	return s2i_int64_pointer[0]
+end
+
+local string_to_uint64_le = function(s)
+	assert(#s == 8)
+	ffi.copy(s2i_char64_pointer, s, 8)
+	return s2i_uint64_pointer[0]
+end
+
+local string_to_uint64_be = function(s)
+	assert(#s == 8)
+	ffi.copy(s2i_char64_pointer, s:reverse(), 8)
+	return s2i_uint64_pointer[0]
+end
+
 --------------------------------------------------------------------------------
 
 local i2f_int_pointer = ffi.new("int32_t[1]", 0)
@@ -132,6 +160,32 @@ local int32_to_string_be = function(n)
 	)
 end
 
+local i2s_int64_pointer = ffi.new("int64_t[1]")
+local i2s_char8_pointer = ffi.cast("char*", i2s_int64_pointer)
+
+local int64_to_string_le = function(n)
+	i2s_int64_pointer[0] = n
+	return ffi.string(i2s_char8_pointer, 8)
+end
+
+local int64_to_string_be = function(n)
+	i2s_int64_pointer[0] = n
+	return ffi.string(i2s_char8_pointer, 8):reverse()
+end
+
+local ui2s_uint64_pointer = ffi.new("uint64_t[1]")
+local ui2s_char8_pointer = ffi.cast("char*", ui2s_uint64_pointer)
+
+local uint64_to_string_le = function(n)
+	ui2s_uint64_pointer[0] = n
+	return ffi.string(ui2s_char8_pointer, 8)
+end
+
+local uint64_to_string_be = function(n)
+	ui2s_uint64_pointer[0] = n
+	return ffi.string(ui2s_char8_pointer, 8):reverse()
+end
+
 local float_to_string_le = function(n)
 	return int32_to_string_le(float_to_int32(n))
 end
@@ -155,6 +209,11 @@ byte.string_to_uint32_be = string_to_uint32_be
 byte.string_to_int32_le = string_to_int32_le
 byte.string_to_int32_be = string_to_int32_be
 
+byte.string_to_int64_le = string_to_int64_le
+byte.string_to_int64_be = string_to_int64_be
+byte.string_to_uint64_le = string_to_uint64_le
+byte.string_to_uint64_be = string_to_uint64_be
+
 byte.int32_to_float = int32_to_float
 byte.float_to_int32 = float_to_int32
 byte.string_to_float_le = string_to_float_le
@@ -165,6 +224,11 @@ byte.int16_to_string_le = int16_to_string_le
 byte.int16_to_string_be = int16_to_string_be
 byte.int32_to_string_le = int32_to_string_le
 byte.int32_to_string_be = int32_to_string_be
+
+byte.int64_to_string_le = int64_to_string_le
+byte.int64_to_string_be = int64_to_string_be
+byte.uint64_to_string_le = uint64_to_string_le
+byte.uint64_to_string_be = uint64_to_string_be
 
 byte.float_to_string_le = float_to_string_le
 byte.float_to_string_be = float_to_string_be
@@ -292,6 +356,26 @@ local int32_be = function(self, n)
 	return string_to_int32_be(_string(self, 4))
 end
 
+local uint64_le = function(self, n)
+	if n then return fill(self, uint64_to_string_le(n)) end
+	return string_to_uint64_le(_string(self, 8))
+end
+
+local uint64_be = function(self, n)
+	if n then return fill(self, uint64_to_string_be(n)) end
+	return string_to_uint64_be(_string(self, 8))
+end
+
+local int64_le = function(self, n)
+	if n then return fill(self, int64_to_string_le(n)) end
+	return string_to_int64_le(_string(self, 8))
+end
+
+local int64_be = function(self, n)
+	if n then return fill(self, int64_to_string_be(n)) end
+	return string_to_int64_be(_string(self, 8))
+end
+
 local float_le = function(self, n)
 	if n then return fill(self, float_to_string_le(n)) end
 	return int32_to_float(string_to_uint32_le(_string(self, 4)))
@@ -321,6 +405,10 @@ buffer.uint32_le = uint32_le
 buffer.uint32_be = uint32_be
 buffer.int32_le = int32_le
 buffer.int32_be = int32_be
+buffer.uint64_le = uint64_le
+buffer.uint64_be = uint64_be
+buffer.int64_le = int64_le
+buffer.int64_be = int64_be
 buffer.float_le = float_le
 buffer.float_be = float_be
 
