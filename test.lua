@@ -89,10 +89,10 @@ do
 	assert(byte.string_to_int32_le(byte.int32_to_string_le(-1)) == -1)
 	assert(byte.string_to_int32_be(byte.int32_to_string_be(-1)) == -1)
 
-	assert(byte.string_to_uint64_le(byte.uint64_to_string_le(-1)) == -1ull)
-	assert(byte.string_to_uint64_be(byte.uint64_to_string_be(-1)) == -1ull)
-	assert(byte.string_to_int64_le(byte.int64_to_string_le(-1)) == -1ll)
-	assert(byte.string_to_int64_be(byte.int64_to_string_be(-1)) == -1ll)
+	assert(byte.string_to_uint64_le(byte.uint64_to_string_le(-1ull)) == -1ull)
+	assert(byte.string_to_uint64_be(byte.uint64_to_string_be(-1ull)) == -1ull)
+	assert(byte.string_to_int64_le(byte.int64_to_string_le(-1ll)) == -1ll)
+	assert(byte.string_to_int64_be(byte.int64_to_string_be(-1ll)) == -1ll)
 
 	assert(byte.string_to_double_le(byte.double_to_string_le(math.pi)) == math.pi)
 	assert(byte.string_to_double_le(byte.double_to_string_le(0.2 + 0.1)) == 0.2 + 0.1)

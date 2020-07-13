@@ -1,9 +1,30 @@
 local bit = require('bit')
 local ffi = require('ffi')
 
+local bad_argument_pattern = "bad argument #%d to '%s' (%s expected, got %s)"
+
+local assert_type = function(value, _type, n, name)
+	return assert(
+		type(value) == _type,
+		bad_argument_pattern:format(n, name, _type, type(value))
+	)
+end
+
+local assert_ctype = function(object, ctype, n, name)
+	assert(
+		type(object) == "cdata",
+		bad_argument_pattern:format(n, name, ffi.typeof(ctype), type(object))
+	)
+	assert(
+		ffi.istype(ctype, object),
+		bad_argument_pattern:format(n, name, ffi.typeof(ctype), ffi.typeof(object))
+	)
+end
+
 --------------------------------------------------------------------------------
 
 local string_to_uint8 = function(s)
+	assert_type(s, "string", 1, "string_to_uint8")
 	assert(#s == 1)
 	return s:byte()
 end
@@ -14,12 +35,14 @@ local string_to_int8 = function(s)
 end
 
 local string_to_uint16_le = function(s)
+	assert_type(s, "string", 1, "string_to_uint16_le")
 	assert(#s == 2)
 	local a, b = s:byte(1, -1)
 	return bit.lshift(b, 8) + a
 end
 
 local string_to_uint16_be = function(s)
+	assert_type(s, "string", 1, "string_to_uint16_be")
 	assert(#s == 2)
 	local a, b = s:byte(1, -1)
 	return bit.lshift(a, 8) + b
@@ -36,6 +59,7 @@ local string_to_int16_be = function(s)
 end
 
 local string_to_int32_le = function(s)
+	assert_type(s, "string", 1, "string_to_int32_le")
 	assert(#s == 4)
 	local a, b, c, d = s:byte(1, -1)
 	return
@@ -46,6 +70,7 @@ local string_to_int32_le = function(s)
 end
 
 local string_to_int32_be = function(s)
+	assert_type(s, "string", 1, "string_to_int32_be")
 	assert(#s == 4)
 	local a, b, c, d = s:byte(1, -1)
 	return
@@ -55,63 +80,85 @@ local string_to_int32_be = function(s)
 		+            d
 end
 
-local int32_pointer = ffi.new("int32_t[1]")
-local uint32_pointer = ffi.cast("uint32_t*", int32_pointer)
+local string_to_uint32_le
+local string_to_uint32_be
+do
+	local int32_pointer = ffi.new("int32_t[1]")
+	local uint32_pointer = ffi.cast("uint32_t*", int32_pointer)
 
-local string_to_uint32_le = function(s)
-	int32_pointer[0] = string_to_int32_le(s)
-	return uint32_pointer[0]
+	string_to_uint32_le = function(s)
+		int32_pointer[0] = string_to_int32_le(s)
+		return uint32_pointer[0]
+	end
+
+	string_to_uint32_be = function(s)
+		int32_pointer[0] = string_to_int32_be(s)
+		return uint32_pointer[0]
+	end
 end
 
-local string_to_uint32_be = function(s)
-	int32_pointer[0] = string_to_int32_be(s)
-	return uint32_pointer[0]
-end
+local string_to_int64_le
+local string_to_int64_be
+local string_to_uint64_le
+local string_to_uint64_be
+do
+	local char_pointer = ffi.new("char[8]")
+	local int64_pointer = ffi.cast("int64_t*", char_pointer)
+	local uint64_pointer = ffi.cast("uint64_t*", char_pointer)
 
-local s2i_char64_pointer = ffi.new("char[8]")
-local s2i_int64_pointer = ffi.cast("int64_t*", s2i_char64_pointer)
-local s2i_uint64_pointer = ffi.cast("uint64_t*", s2i_char64_pointer)
+	string_to_int64_le = function(s)
+		assert_type(s, "string", 1, "string_to_int64_le")
+		assert(#s == 8)
+		ffi.copy(char_pointer, s, 8)
+		return int64_pointer[0]
+	end
 
-local string_to_int64_le = function(s)
-	assert(#s == 8)
-	ffi.copy(s2i_char64_pointer, s, 8)
-	return s2i_int64_pointer[0]
-end
+	string_to_int64_be = function(s)
+		assert_type(s, "string", 1, "string_to_int64_be")
+		assert(#s == 8)
+		ffi.copy(char_pointer, s:reverse(), 8)
+		return int64_pointer[0]
+	end
 
-local string_to_int64_be = function(s)
-	assert(#s == 8)
-	ffi.copy(s2i_char64_pointer, s:reverse(), 8)
-	return s2i_int64_pointer[0]
-end
+	string_to_uint64_le = function(s)
+		assert_type(s, "string", 1, "string_to_uint64_le")
+		assert(#s == 8)
+		ffi.copy(char_pointer, s, 8)
+		return uint64_pointer[0]
+	end
 
-local string_to_uint64_le = function(s)
-	assert(#s == 8)
-	ffi.copy(s2i_char64_pointer, s, 8)
-	return s2i_uint64_pointer[0]
-end
-
-local string_to_uint64_be = function(s)
-	assert(#s == 8)
-	ffi.copy(s2i_char64_pointer, s:reverse(), 8)
-	return s2i_uint64_pointer[0]
+	string_to_uint64_be = function(s)
+		assert_type(s, "string", 1, "string_to_uint64_be")
+		assert(#s == 8)
+		ffi.copy(char_pointer, s:reverse(), 8)
+		return uint64_pointer[0]
+	end
 end
 
 --------------------------------------------------------------------------------
 
-local i2f_int_pointer = ffi.new("int32_t[1]", 0)
-local i2f_float_pointer = ffi.cast("float*", i2f_int_pointer)
+local int32_to_float
+do
+	local int32_pointer = ffi.new("int32_t[1]")
+	local float_pointer = ffi.cast("float*", int32_pointer)
 
-local int32_to_float = function(n)
-	i2f_int_pointer[0] = n
-	return tonumber(i2f_float_pointer[0])
+	int32_to_float = function(n)
+		assert_type(n, "number", 1, "int32_to_float")
+		int32_pointer[0] = n
+		return tonumber(float_pointer[0])
+	end
 end
 
-local f2i_float_pointer = ffi.new("float[1]", 0)
-local f2i_int_pointer = ffi.cast("int32_t*", f2i_float_pointer)
+local float_to_int32
+do
+	local float_pointer = ffi.new("float[1]")
+	local int32_pointer = ffi.cast("int32_t*", float_pointer)
 
-local float_to_int32 = function(n)
-	f2i_float_pointer[0] = n
-	return tonumber(f2i_int_pointer[0])
+	float_to_int32 = function(n)
+		assert_type(n, "number", 1, "float_to_int32")
+		float_pointer[0] = n
+		return tonumber(int32_pointer[0])
+	end
 end
 
 local string_to_float_le = function(s)
@@ -124,20 +171,29 @@ end
 
 --------------------------------------------------------------------------------
 
-local i2d_int_pointer = ffi.new("int64_t[1]", 0)
-local i2d_double_pointer = ffi.cast("double*", i2d_int_pointer)
+local int64_to_double
+do
+	local int64_pointer = ffi.new("int64_t[1]")
+	local double_pointer = ffi.cast("double*", int64_pointer)
+	local int64_t = ffi.typeof("int64_t")
 
-local int64_to_double = function(n)
-	i2d_int_pointer[0] = n
-	return tonumber(i2d_double_pointer[0])
+	int64_to_double = function(n)
+		assert_ctype(n, int64_t, 1, "int64_to_double")
+		int64_pointer[0] = n
+		return tonumber(double_pointer[0])
+	end
 end
 
-local d2i_double_pointer = ffi.new("double[1]", 0)
-local d2i_int_pointer = ffi.cast("int64_t*", d2i_double_pointer)
+local double_to_int64
+do
+	local double_pointer = ffi.new("double[1]")
+	local int64_pointer = ffi.cast("int64_t*", double_pointer)
 
-local double_to_int64 = function(n)
-	d2i_double_pointer[0] = n
-	return d2i_int_pointer[0]
+	double_to_int64 = function(n)
+		assert_type(n, "number", 1, "int64_to_double")
+		double_pointer[0] = n
+		return int64_pointer[0]
+	end
 end
 
 local string_to_double_le = function(s)
@@ -151,10 +207,12 @@ end
 --------------------------------------------------------------------------------
 
 local int8_to_string = function(n)
+	assert_type(n, "number", 1, "int8_to_string")
 	return string.char(bit.band(n, 0x000000ff))
 end
 
 local int16_to_string_le = function(n)
+	assert_type(n, "number", 1, "int16_to_string_le")
 	return string.char(
 		           bit.band(n, 0x000000ff),
 		bit.rshift(bit.band(n, 0x0000ff00), 8)
@@ -162,6 +220,7 @@ local int16_to_string_le = function(n)
 end
 
 local int16_to_string_be = function(n)
+	assert_type(n, "number", 1, "int16_to_string_be")
 	return string.char(
 		bit.rshift(bit.band(n, 0x0000ff00), 8),
 		           bit.band(n, 0x000000ff)
@@ -169,6 +228,7 @@ local int16_to_string_be = function(n)
 end
 
 local int32_to_string_le = function(n)
+	assert_type(n, "number", 1, "int32_to_string_le")
 	return string.char(
 		           bit.band(n, 0x000000ff),
 		bit.rshift(bit.band(n, 0x0000ff00), 8),
@@ -178,6 +238,7 @@ local int32_to_string_le = function(n)
 end
 
 local int32_to_string_be = function(n)
+	assert_type(n, "number", 1, "int32_to_string_be")
 	return string.char(
 		bit.rshift(bit.band(n, 0xff000000), 24),
 		bit.rshift(bit.band(n, 0x00ff0000), 16),
@@ -186,30 +247,44 @@ local int32_to_string_be = function(n)
 	)
 end
 
-local i2s_int64_pointer = ffi.new("int64_t[1]")
-local i2s_char8_pointer = ffi.cast("char*", i2s_int64_pointer)
+local int64_to_string_le
+local int64_to_string_be
+do
+	local int64_pointer = ffi.new("int64_t[1]")
+	local char_pointer = ffi.cast("char*", int64_pointer)
+	local int64_t = ffi.typeof("int64_t")
 
-local int64_to_string_le = function(n)
-	i2s_int64_pointer[0] = n
-	return ffi.string(i2s_char8_pointer, 8)
+	int64_to_string_le = function(n)
+		assert_ctype(n, int64_t, 1, "int64_to_string_le")
+		int64_pointer[0] = n
+		return ffi.string(char_pointer, 8)
+	end
+
+	int64_to_string_be = function(n)
+		assert_ctype(n, int64_t, 1, "int64_to_string_be")
+		int64_pointer[0] = n
+		return ffi.string(char_pointer, 8):reverse()
+	end
 end
 
-local int64_to_string_be = function(n)
-	i2s_int64_pointer[0] = n
-	return ffi.string(i2s_char8_pointer, 8):reverse()
-end
+local uint64_to_string_le
+local uint64_to_string_be
+do
+	local uint64_pointer = ffi.new("uint64_t[1]")
+	local char_pointer = ffi.cast("char*", uint64_pointer)
+	local uint64_t = ffi.typeof("uint64_t")
 
-local ui2s_uint64_pointer = ffi.new("uint64_t[1]")
-local ui2s_char8_pointer = ffi.cast("char*", ui2s_uint64_pointer)
+	uint64_to_string_le = function(n)
+		assert_ctype(n, uint64_t, 1, "uint64_to_string_le")
+		uint64_pointer[0] = n
+		return ffi.string(char_pointer, 8)
+	end
 
-local uint64_to_string_le = function(n)
-	ui2s_uint64_pointer[0] = n
-	return ffi.string(ui2s_char8_pointer, 8)
-end
-
-local uint64_to_string_be = function(n)
-	ui2s_uint64_pointer[0] = n
-	return ffi.string(ui2s_char8_pointer, 8):reverse()
+	uint64_to_string_be = function(n)
+		assert_ctype(n, uint64_t, 1, "uint64_to_string_be")
+		uint64_pointer[0] = n
+		return ffi.string(char_pointer, 8):reverse()
+	end
 end
 
 local float_to_string_le = function(n)
@@ -292,7 +367,7 @@ end
 
 local gc = function(self, state)
 	assert(self.size ~= 0, "buffer was already freed")
-	assert(type(state) == "boolean", ("bad argument #2 to 'gc' (boolean expected, got %s)"):format(type(state)))
+	assert_type(state, "boolean", 2, "gc")
 	if state then
 		ffi.gc(self, free)
 	else
@@ -322,7 +397,7 @@ local _string = function(self, length)
 	local offset = self.offset
 
 	assert(size ~= 0, "buffer was already freed")
-	assert(type(length) == "number", ("bad argument #2 to 'string' (number expected, got %s)"):format(type(length)))
+	assert_type(length, "number", 2, "string")
 	assert(length >= 0, "length cannot be less than zero")
 	assert(offset + length <= size, "attempt to read after end of buffer")
 	seek(self, offset + length)
@@ -335,7 +410,7 @@ local _cstring = function(self, length)
 	local offset = self.offset
 
 	assert(size ~= 0, "buffer was already freed")
-	assert(type(length) == "number", ("bad argument #2 to 'cstring' (number expected, got %s)"):format(type(length)))
+	assert_type(length, "number", 2, "string")
 	assert(length >= 0, "length cannot be less than zero")
 	assert(offset + length <= size, "attempt to read after end of buffer")
 	seek(self, offset + length)
