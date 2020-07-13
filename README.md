@@ -14,11 +14,10 @@ b:free() -- optional, the garbage collector can handle this correctly
 
 -- nan boxing example
 local b = byte.buffer(8)
-b:double_be(0 / 0):seek(4):fill("love"):seek(0)
+b:double_be(0 / 0):seek(4):fill("love")
 
-local nanbox = b:double_be()
+local nanbox = b:seek(0):double_be()
 assert(nanbox ~= nanbox) -- nan
 
-assert(b:seek(4):string(4) == "love")
-
+assert(b:seek(0):double_be(nanbox):seek(4):string(4) == "love")
 ```
