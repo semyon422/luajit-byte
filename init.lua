@@ -328,6 +328,7 @@ end
 
 local byte = {}
 
+-- accept string, return number
 byte.string_to_uint8 = string_to_uint8
 byte.string_to_int8 = string_to_int8
 byte.string_to_uint16_le = string_to_uint16_le
@@ -338,37 +339,43 @@ byte.string_to_uint32_le = string_to_uint32_le
 byte.string_to_uint32_be = string_to_uint32_be
 byte.string_to_int32_le = string_to_int32_le
 byte.string_to_int32_be = string_to_int32_be
+byte.string_to_float_le = string_to_float_le
+byte.string_to_float_be = string_to_float_be
+byte.string_to_double_le = string_to_double_le
+byte.string_to_double_be = string_to_double_be
 
+-- accept string, return int64/uint64
 byte.string_to_int64_le = string_to_int64_le
 byte.string_to_int64_be = string_to_int64_be
 byte.string_to_uint64_le = string_to_uint64_le
 byte.string_to_uint64_be = string_to_uint64_be
 
+-- accept number, return number
 byte.int32_to_float = int32_to_float
 byte.float_to_int32 = float_to_int32
-byte.string_to_float_le = string_to_float_le
-byte.string_to_float_be = string_to_float_be
 
+-- accept int64, return number
 byte.int64_to_double = int64_to_double
-byte.double_to_int64 = double_to_int64
-byte.string_to_double_le = string_to_double_le
-byte.string_to_double_be = string_to_double_be
 
+-- accept number, return int64
+byte.double_to_int64 = double_to_int64
+
+-- accept number, return string
 byte.int8_to_string = int8_to_string
 byte.int16_to_string_le = int16_to_string_le
 byte.int16_to_string_be = int16_to_string_be
 byte.int32_to_string_le = int32_to_string_le
 byte.int32_to_string_be = int32_to_string_be
-
-byte.int64_to_string_le = int64_to_string_le
-byte.int64_to_string_be = int64_to_string_be
-byte.uint64_to_string_le = uint64_to_string_le
-byte.uint64_to_string_be = uint64_to_string_be
-
 byte.float_to_string_le = float_to_string_le
 byte.float_to_string_be = float_to_string_be
 byte.double_to_string_le = double_to_string_le
 byte.double_to_string_be = double_to_string_be
+
+-- accept int64/uint64, return string
+byte.int64_to_string_le = int64_to_string_le
+byte.int64_to_string_be = int64_to_string_be
+byte.uint64_to_string_le = uint64_to_string_le
+byte.uint64_to_string_be = uint64_to_string_be
 
 --------------------------------------------------------------------------------
 
@@ -573,12 +580,25 @@ end
 
 local buffer = {}
 
+-- returns total allocated memory
 buffer.total = total
+
+-- reallocates memory
 buffer.resize = resize
+
+-- frees memory
 buffer.free = free
+
+-- should allocated memory be collected by GC or not?
 buffer.gc = gc
+
+-- copies #string bytes of given string to a buffer, increases offset by #string
 buffer.fill = fill
+
+-- sets new offset
 buffer.seek = seek
+
+-- reads/writes data to a buffer
 buffer.string = _string
 buffer.cstring = _cstring
 buffer.uint8 = uint8
@@ -631,7 +651,10 @@ local newbuffer = function(size)
 	return buffer
 end
 
+-- buffer ctype
 byte.buffer_t = buffer_t
+
+-- buffer constructor
 byte.buffer = newbuffer
 
 return byte
