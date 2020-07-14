@@ -109,12 +109,12 @@ do
 
 	string_to_uint32_le = function(s)
 		int32_pointer[0] = string_to_int32_le(s)
-		return uint32_pointer[0]
+		return tonumber(uint32_pointer[0])
 	end
 
 	string_to_uint32_be = function(s)
 		int32_pointer[0] = string_to_int32_be(s)
-		return uint32_pointer[0]
+		return tonumber(uint32_pointer[0])
 	end
 end
 
