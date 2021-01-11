@@ -109,12 +109,12 @@ do
 
 	string_to_uint32_le = function(s)
 		int32_pointer[0] = string_to_int32_le(s)
-		return tonumber(uint32_pointer[0])
+		return uint32_pointer[0]
 	end
 
 	string_to_uint32_be = function(s)
 		int32_pointer[0] = string_to_int32_be(s)
-		return tonumber(uint32_pointer[0])
+		return uint32_pointer[0]
 	end
 end
 
@@ -166,7 +166,7 @@ do
 	uint32_to_float = function(n)
 		assert_type(n, "number")
 		uint32_pointer[0] = n
-		return tonumber(float_pointer[0])
+		return float_pointer[0]
 	end
 end
 
@@ -178,7 +178,7 @@ do
 	float_to_uint32 = function(n)
 		assert_type(n, "number")
 		float_pointer[0] = n
-		return tonumber(uint32_pointer[0])
+		return uint32_pointer[0]
 	end
 end
 
@@ -201,7 +201,7 @@ do
 	uint64_to_double = function(n)
 		assert_ctype(n, uint64_t)
 		uint64_pointer[0] = n
-		return tonumber(double_pointer[0])
+		return double_pointer[0]
 	end
 end
 
