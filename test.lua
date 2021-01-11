@@ -46,29 +46,38 @@ end
 do
 	local n1 = 0x3e200000
 	local n2 = 0x3f800000
+	local n3 = 0xc0000000
 
 	local s1_be = string.char(0x3e, 0x20, 0x00, 0x00)
 	local s2_be = string.char(0x3f, 0x80, 0x00, 0x00)
+	local s3_be = string.char(0xc0, 0x00, 0x00, 0x00)
 	local s1_le = string.char(0x00, 0x00, 0x20, 0x3e)
 	local s2_le = string.char(0x00, 0x00, 0x80, 0x3f)
+	local s3_le = string.char(0x00, 0x00, 0x00, 0xc0)
 
-	assert(byte.int32_to_float(n1) == 0.15625) -- 0011 1110 0010 0000 0000 0000 0000 0000
-	assert(byte.int32_to_float(n2) == 1)
+	assert(byte.uint32_to_float(n1) == 0.15625) -- 0011 1110 0010 0000 0000 0000 0000 0000
+	assert(byte.uint32_to_float(n2) == 1)
+	assert(byte.uint32_to_float(n3) == -2)
 
 	assert(byte.string_to_float_le(s1_le) == 0.15625)
 	assert(byte.string_to_float_le(s2_le) == 1)
+	assert(byte.string_to_float_le(s3_le) == -2)
 
 	assert(byte.string_to_float_be(s1_be) == 0.15625)
 	assert(byte.string_to_float_be(s2_be) == 1)
+	assert(byte.string_to_float_be(s3_be) == -2)
 
-	assert(byte.float_to_int32(0.15625) == n1)
-	assert(byte.float_to_int32(1) == n2)
+	assert(byte.float_to_uint32(0.15625) == n1)
+	assert(byte.float_to_uint32(1) == n2)
+	assert(byte.float_to_uint32(-2) == n3)
 
 	assert(byte.float_to_string_le(0.15625) == s1_le)
 	assert(byte.float_to_string_le(1) == s2_le)
+	assert(byte.float_to_string_le(-2) == s3_le)
 
 	assert(byte.float_to_string_be(0.15625) == s1_be)
 	assert(byte.float_to_string_be(1) == s2_be)
+	assert(byte.float_to_string_be(-2) == s3_be)
 
 	assert(byte.int8_to_string(113) == "q")
 	assert(byte.int16_to_string_le(0x4952) == "RI")
@@ -99,6 +108,14 @@ do
 
 	assert(byte.string_to_double_be(byte.double_to_string_be(math.pi)) == math.pi)
 	assert(byte.string_to_double_be(byte.double_to_string_be(0.2 + 0.1)) == 0.2 + 0.1)
+
+	local n4 = 0xc000000000000000ull
+	local s4_be = string.char(0xc0, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00)
+	local s4_le = string.char(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xc0)
+
+	assert(byte.uint64_to_double(n4) == -2)
+	assert(byte.string_to_double_le(s4_le) == -2)
+	assert(byte.string_to_double_be(s4_be) == -2)
 end
 
 do

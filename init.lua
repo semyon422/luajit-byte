@@ -158,71 +158,71 @@ end
 
 --------------------------------------------------------------------------------
 
-local int32_to_float
+local uint32_to_float
 do
-	local int32_pointer = ffi.new("int32_t[1]")
-	local float_pointer = ffi.cast("float*", int32_pointer)
+	local uint32_pointer = ffi.new("uint32_t[1]")
+	local float_pointer = ffi.cast("float*", uint32_pointer)
 
-	int32_to_float = function(n)
+	uint32_to_float = function(n)
 		assert_type(n, "number")
-		int32_pointer[0] = n
+		uint32_pointer[0] = n
 		return tonumber(float_pointer[0])
 	end
 end
 
-local float_to_int32
+local float_to_uint32
 do
 	local float_pointer = ffi.new("float[1]")
-	local int32_pointer = ffi.cast("int32_t*", float_pointer)
+	local uint32_pointer = ffi.cast("uint32_t*", float_pointer)
 
-	float_to_int32 = function(n)
+	float_to_uint32 = function(n)
 		assert_type(n, "number")
 		float_pointer[0] = n
-		return tonumber(int32_pointer[0])
+		return tonumber(uint32_pointer[0])
 	end
 end
 
 local string_to_float_le = function(s)
-	return int32_to_float(string_to_int32_le(s))
+	return uint32_to_float(string_to_int32_le(s))
 end
 
 local string_to_float_be = function(s)
-	return int32_to_float(string_to_int32_be(s))
+	return uint32_to_float(string_to_int32_be(s))
 end
 
 --------------------------------------------------------------------------------
 
-local int64_to_double
+local uint64_to_double
 do
-	local int64_pointer = ffi.new("int64_t[1]")
-	local double_pointer = ffi.cast("double*", int64_pointer)
-	local int64_t = ffi.typeof("int64_t")
+	local uint64_pointer = ffi.new("uint64_t[1]")
+	local double_pointer = ffi.cast("double*", uint64_pointer)
+	local uint64_t = ffi.typeof("uint64_t")
 
-	int64_to_double = function(n)
-		assert_ctype(n, int64_t)
-		int64_pointer[0] = n
+	uint64_to_double = function(n)
+		assert_ctype(n, uint64_t)
+		uint64_pointer[0] = n
 		return tonumber(double_pointer[0])
 	end
 end
 
-local double_to_int64
+local double_to_uint64
 do
 	local double_pointer = ffi.new("double[1]")
-	local int64_pointer = ffi.cast("int64_t*", double_pointer)
+	local uint64_pointer = ffi.cast("uint64_t*", double_pointer)
 
-	double_to_int64 = function(n)
+	double_to_uint64 = function(n)
 		assert_type(n, "number")
 		double_pointer[0] = n
-		return int64_pointer[0]
+		return uint64_pointer[0]
 	end
 end
 
 local string_to_double_le = function(s)
-	return int64_to_double(string_to_int64_le(s))
+	return uint64_to_double(string_to_uint64_le(s))
 end
 
 local string_to_double_be = function(s)
-	return int64_to_double(string_to_int64_be(s))
+	return uint64_to_double(string_to_uint64_be(s))
 end
 
 --------------------------------------------------------------------------------
@@ -309,19 +309,19 @@ do
 end
 
 local float_to_string_le = function(n)
-	return int32_to_string_le(float_to_int32(n))
+	return int32_to_string_le(float_to_uint32(n))
 end
 
 local float_to_string_be = function(n)
-	return int32_to_string_be(float_to_int32(n))
+	return int32_to_string_be(float_to_uint32(n))
 end
 
 local double_to_string_le = function(n)
-	return int64_to_string_le(double_to_int64(n))
+	return uint64_to_string_le(double_to_uint64(n))
 end
 
 local double_to_string_be = function(n)
-	return int64_to_string_be(double_to_int64(n))
+	return uint64_to_string_be(double_to_uint64(n))
 end
 
 --------------------------------------------------------------------------------
@@ -351,14 +351,14 @@ byte.string_to_uint64_le = string_to_uint64_le
 byte.string_to_uint64_be = string_to_uint64_be
 
 -- accept number, return number
-byte.int32_to_float = int32_to_float
-byte.float_to_int32 = float_to_int32
+byte.uint32_to_float = uint32_to_float
+byte.float_to_uint32 = float_to_uint32
 
--- accept int64, return number
-byte.int64_to_double = int64_to_double
+-- accept uint64, return number
+byte.uint64_to_double = uint64_to_double
 
--- accept number, return int64
-byte.double_to_int64 = double_to_int64
+-- accept number, return uint64
+byte.double_to_uint64 = double_to_uint64
 
 -- accept number, return string
 byte.int8_to_string = int8_to_string
@@ -560,22 +560,22 @@ end
 
 local float_le = function(self, n)
 	if n then return fill(self, float_to_string_le(n)) end
-	return int32_to_float(string_to_uint32_le(_string(self, 4)))
+	return uint32_to_float(string_to_uint32_le(_string(self, 4)))
 end
 
 local float_be = function(self, n)
 	if n then return fill(self, float_to_string_be(n)) end
-	return int32_to_float(string_to_uint32_be(_string(self, 4)))
+	return uint32_to_float(string_to_uint32_be(_string(self, 4)))
 end
 
 local double_le = function(self, n)
 	if n then return fill(self, double_to_string_le(n)) end
-	return int64_to_double(string_to_int64_le(_string(self, 8)))
+	return uint64_to_double(string_to_uint64_le(_string(self, 8)))
 end
 
 local double_be = function(self, n)
 	if n then return fill(self, double_to_string_be(n)) end
-	return int64_to_double(string_to_int64_be(_string(self, 8)))
+	return uint64_to_double(string_to_uint64_be(_string(self, 8)))
 end
 
 local buffer = {}
