@@ -626,7 +626,7 @@ ffi.cdef("void * malloc(size_t size);")
 ffi.cdef("void * realloc(void * ptr, size_t newsize);")
 ffi.cdef("void free(void * ptr);")
 
-ffi.cdef("typedef struct {size_t size; size_t offset; unsigned char * pointer;} buffer_t;")
+ffi.cdef("typedef struct {unsigned char * pointer; size_t size; size_t offset;} buffer_t;")
 
 local mt = {}
 
@@ -643,7 +643,7 @@ local newbuffer = function(size)
 	local pointer = ffi.C.malloc(size)
 	assert(pointer ~= nil, "allocation error")
 
-	local buffer = buffer_t(size, 0, pointer)
+	local buffer = buffer_t(pointer, size, 0)
 	ffi.gc(buffer, free)
 
 	_total = _total + size

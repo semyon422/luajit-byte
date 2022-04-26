@@ -235,7 +235,7 @@ do
 	end
 	collectgarbage("collect")
 	do
-		local b = byte.buffer_t(size, 0, pointer)
+		local b = byte.buffer_t(pointer, size, 0)
 		b:gc(true)
 		assert(b:string(size) == "aaaa")
 		b:free()
@@ -253,7 +253,7 @@ do
 	end
 	collectgarbage("collect")
 	do
-		local b = byte.buffer_t(size, 0, ffi.cast("void*", address))
+		local b = byte.buffer_t(ffi.cast("void*", address), size, 0)
 		assert(b:string(size) == "aaaa")
 		b:free()
 	end
